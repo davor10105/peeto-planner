@@ -46,7 +46,12 @@ class _AddTaskPageState extends State<AddTaskPage> {
           )
         : QuillController.basic();
 
-    selectedStartTime = DateTime.now();
+    if (widget.plannerState.currentTask != null) {
+      selectedStartTime = widget.plannerState.currentTask!.startTime;
+      selectedEndTime = widget.plannerState.currentTask!.endTime;
+    } else {
+      selectedStartTime = DateTime.now();
+    }
   }
 
   @override
