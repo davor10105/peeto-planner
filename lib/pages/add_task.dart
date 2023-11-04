@@ -23,10 +23,8 @@ class _AddTaskPageState extends State<AddTaskPage> {
   late TextEditingController descriptionController = TextEditingController();
   QuillController _controller = QuillController.basic();
   late PlannerTaskType selectedTaskType;
-  late DateTime selectedStartDate;
-  DateTime? selectedEndDate;
-  late TimeOfDay selectedStartTime;
-  TimeOfDay? selectedEndTime;
+  late DateTime selectedStartTime;
+  DateTime? selectedEndTime;
 
   @override
   void initState() {
@@ -48,8 +46,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
           )
         : QuillController.basic();
 
-    selectedStartDate = DateTime.now();
-    selectedStartTime = TimeOfDay.now();
+    selectedStartTime = DateTime.now();
   }
 
   @override
@@ -100,7 +97,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                                   style: Theme.of(context).textTheme.labelSmall,
                                 ),
                                 Text(
-                                  '${selectedStartDate.day.toString().padLeft(2, '0')}.${selectedStartDate.month.toString().padLeft(2, '0')}.${selectedStartDate.year} - ${selectedStartTime!.hour.toString().padLeft(2, '0')}:${selectedStartTime!.minute.toString().padLeft(2, '0')}',
+                                  '${selectedStartTime.day.toString().padLeft(2, '0')}.${selectedStartTime.month.toString().padLeft(2, '0')}.${selectedStartTime.year} - ${selectedStartTime.hour.toString().padLeft(2, '0')}:${selectedStartTime.minute.toString().padLeft(2, '0')}',
                                   style:
                                       Theme.of(context).textTheme.labelMedium,
                                 )
@@ -110,18 +107,11 @@ class _AddTaskPageState extends State<AddTaskPage> {
                               final date = await showDatePicker(
                                   context: context,
                                   initialDate: currentDateTime,
-                                  firstDate: DateTime(
-                                      currentDateTime.year - 1,
-                                      currentDateTime.month,
-                                      currentDateTime.day),
-                                  lastDate: DateTime(
-                                      currentDateTime.year + 1,
-                                      currentDateTime.month,
-                                      currentDateTime.day));
+                                  firstDate: currentDateTime
+                                      .subtract(const Duration(days: 365)),
+                                  lastDate: currentDateTime
+                                      .add(const Duration(days: 365)));
                               if (date == null) return;
-                              setState(() {
-                                selectedStartDate = date;
-                              });
 
                               if (mounted) {
                                 final time = await showTimePicker(
@@ -130,7 +120,13 @@ class _AddTaskPageState extends State<AddTaskPage> {
                                 );
                                 if (time == null) return;
                                 setState(() {
-                                  selectedStartTime = time;
+                                  selectedStartTime = DateTime(
+                                    date.year,
+                                    date.month,
+                                    date.day,
+                                    time.hour,
+                                    time.minute,
+                                  );
                                 });
                               }
                             },
@@ -146,7 +142,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                                   'End date:',
                                   style: Theme.of(context).textTheme.labelSmall,
                                 ),
-                                selectedEndDate == null
+                                selectedEndTime == null
                                     ? Text(
                                         'None',
                                         style: Theme.of(context)
@@ -154,7 +150,7 @@ class _AddTaskPageState extends State<AddTaskPage> {
                                             .labelMedium,
                                       )
                                     : Text(
-                                        '${selectedEndDate!.day.toString().padLeft(2, '0')}.${selectedEndDate!.month.toString().padLeft(2, '0')}.${selectedEndDate!.year} - ${selectedEndTime!.hour.toString().padLeft(2, '0')}:${selectedEndTime!.minute.toString().padLeft(2, '0')}',
+                                        '${selectedEndTime!.day.toString().padLeft(2, '0')}.${selectedEndTime!.month.toString().padLeft(2, '0')}.${selectedEndTime!.year} - ${selectedEndTime!.hour.toString().padLeft(2, '0')}:${selectedEndTime!.minute.toString().padLeft(2, '0')}',
                                         style: Theme.of(context)
                                             .textTheme
                                             .labelMedium,
@@ -163,30 +159,30 @@ class _AddTaskPageState extends State<AddTaskPage> {
                             ),
                             onPressed: () async {
                               final date = await showDatePicker(
-                                  context: context,
-                                  initialDate: selectedStartDate,
-                                  firstDate: selectedStartDate,
-                                  lastDate: DateTime(
-                                      currentDateTime.year + 1,
-                                      currentDateTime.month,
-                                      currentDateTime.day));
+                                context: context,
+                                initialDate:
+                                    selectedEndTime ?? selectedStartTime,
+                                firstDate: selectedEndTime ?? selectedStartTime,
+                                lastDate: (selectedEndTime ?? selectedStartTime)
+                                    .add(Duration(days: 365)),
+                              );
                               if (date == null) return;
 
                               if (mounted) {
                                 final time = await showTimePicker(
                                   context: context,
-                                  initialTime: selectedStartTime,
+                                  initialTime: TimeOfDay.fromDateTime(
+                                      selectedEndTime ?? selectedStartTime),
                                 );
                                 if (time == null) return;
                                 if (mounted) {
-                                  if (DateTime(date.year, date.month, date.day,
-                                          time.hour, time.minute)
-                                      .isBefore(DateTime(
-                                          selectedStartDate.year,
-                                          selectedStartDate.month,
-                                          selectedStartDate.day,
-                                          selectedStartTime.hour,
-                                          selectedStartTime.minute))) {
+                                  DateTime newEndTime = DateTime(
+                                      date.year,
+                                      date.month,
+                                      date.day,
+                                      time.hour,
+                                      time.minute);
+                                  if (newEndTime.isBefore(selectedStartTime)) {
                                     showDialog(
                                       context: context,
                                       builder: (BuildContext context) {
@@ -213,11 +209,10 @@ class _AddTaskPageState extends State<AddTaskPage> {
                                     );
                                     return;
                                   }
+                                  setState(() {
+                                    selectedEndTime = newEndTime;
+                                  });
                                 }
-                                setState(() {
-                                  selectedEndDate = date;
-                                  selectedEndTime = time;
-                                });
                               }
                             },
                           ),
@@ -356,6 +351,8 @@ class _AddTaskPageState extends State<AddTaskPage> {
                                     descriptionDelta,
                                     textDescription,
                                     selectedTaskType,
+                                    selectedStartTime,
+                                    selectedEndTime,
                                     plannerState.currentTask != null
                                         ? plannerState.currentTask!.uuid
                                         : null),
