@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:peeto_planner/components/task.dart';
 import 'package:peeto_planner/main.dart';
 import 'package:peeto_planner/pages/add_task.dart';
@@ -8,13 +9,11 @@ import 'package:provider/provider.dart';
 
 import '../components/appbar.dart';
 
-List<Widget> getTaskContainers(
-    PlannerState plannerState, BuildContext context) {
+List<Widget> getTaskContainers(PlannerState plannerState, BuildContext context,
+    PlannerTaskType currentPlannerTaskType) {
   List<Widget> taskContainers = [];
   for (var task in plannerState.tasks.values) {
-    print(plannerState.currentTaskType!.typeName);
-    print(task.taskType.typeName);
-    if (plannerState.currentTaskType!.typeName != task.taskType.typeName) {
+    if (currentPlannerTaskType.typeName != task.taskType.typeName) {
       continue;
     }
     taskContainers.add(InkWell(
@@ -22,7 +21,104 @@ List<Widget> getTaskContainers(
         plannerState.setCurrentTask(task);
         Navigator.pushNamed(context, '/add_task');
       },
-      child: Container(
+      child: Slidable(
+        // Specify a key if the Slidable is dismissible.
+        //key: const ValueKey(0),
+        direction: Axis.horizontal,
+
+        // The start action pane is the one at the left or the top side.
+        endActionPane: ActionPane(
+          extentRatio: 0.8,
+          // A motion is a widget used to control how the pane animates.
+          motion: const BehindMotion(),
+
+          // A pane can dismiss the Slidable.
+          //dismissible: DismissiblePane(onDismissed: () {}),
+
+          // All actions are defined in the children parameter.
+          children: [
+            // A SlidableAction can have an icon and/or a label.
+            SlidableAction(
+              onPressed: (context) {
+                if (!task.isDone) {
+                  plannerState.completeTask(task);
+                } else {
+                  plannerState.uncompleteTask(task);
+                }
+              },
+              flex: 2,
+              backgroundColor:
+                  task.isDone ? Colors.blueGrey : Colors.greenAccent,
+              foregroundColor: Colors.white,
+              icon: Icons.check,
+              label: task.isDone ? 'Un-Complete' : 'Complete',
+              borderRadius: const BorderRadius.only(
+                topRight: Radius.circular(8.0),
+                topLeft: Radius.circular(8.0),
+              ),
+            ),
+            SlidableAction(
+              onPressed: (context) {
+                plannerState.deleteTask(task);
+                print('DELETED');
+              },
+              backgroundColor: Colors.redAccent,
+              foregroundColor: Colors.white,
+              icon: Icons.delete,
+              label: 'Delete',
+              borderRadius: const BorderRadius.only(
+                bottomRight: Radius.circular(8.0),
+                bottomLeft: Radius.circular(8.0),
+              ),
+            ),
+          ],
+        ),
+        child: /*ListTile(
+          title: Text(
+            task.title,
+            style: Theme.of(context).textTheme.bodyMedium,
+          ),
+          subtitle: Text(
+            task.textDescription,
+            style: Theme.of(context).textTheme.bodySmall,
+          ),
+        ), */
+            Container(
+          clipBehavior: Clip.hardEdge,
+          height: 150,
+          decoration: const BoxDecoration(
+              color: Color.fromARGB(255, 224, 224, 224),
+              borderRadius: BorderRadius.all(Radius.circular(8.0))),
+          child: Center(
+              child: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Expanded(
+                      child: Center(
+                        child: Text(
+                          task.title,
+                          style: Theme.of(context).textTheme.bodyMedium,
+                        ),
+                      ),
+                    ),
+                    task.isDone ? Icon(Icons.check) : Container(),
+                  ],
+                ),
+                Text(
+                  task.textDescription,
+                  style: Theme.of(context).textTheme.bodySmall,
+                ),
+              ],
+            ),
+          )),
+        ),
+      ),
+      /*Container(
         clipBehavior: Clip.hardEdge,
         height: 50,
         decoration: const BoxDecoration(
@@ -45,19 +141,24 @@ List<Widget> getTaskContainers(
             ],
           ),
         )),
-      ),
+      ),*/
     ));
   }
   return taskContainers;
 }
 
 class ViewTaskTypePage extends StatelessWidget {
-  const ViewTaskTypePage({super.key});
+  final PlannerState plannerState;
+  final PlannerTaskType currentPlannerTaskType;
+  const ViewTaskTypePage(
+      {super.key,
+      required this.plannerState,
+      required this.currentPlannerTaskType});
 
   @override
   Widget build(BuildContext context) {
-    var plannerState = context.watch<PlannerState>();
-    return SafeArea(
+    //var plannerState = context.watch<PlannerState>();
+    /*return SafeArea(
       child: Scaffold(
           appBar: getPeetoAppBar(context),
           floatingActionButton: FloatingActionButton(
@@ -67,6 +168,7 @@ class ViewTaskTypePage extends StatelessWidget {
             },
             child: Icon(Icons.add),
           ),
+          //body: ListView(children: getTaskContainers(plannerState, context)))
           body: GridView.count(
             primary: false,
             padding: const EdgeInsets.all(20),
@@ -75,6 +177,10 @@ class ViewTaskTypePage extends StatelessWidget {
             crossAxisCount: 2,
             children: getTaskContainers(plannerState, context),
           )),
-    );
+    );*/
+
+    return Column(
+        children:
+            getTaskContainers(plannerState, context, currentPlannerTaskType));
   }
 }

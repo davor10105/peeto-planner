@@ -14,12 +14,12 @@ void main() async {
   Hive.registerAdapter(PlannerTaskAdapter());
   Hive.registerAdapter(PlannerTaskTypeAdapter());
 
-  await Hive.openBox<PlannerTask>('planner-tasks');
+  await Hive.openBox<PlannerTask>('planner-tasks2');
   runApp(const MainApp());
 }
 
 class PlannerState extends ChangeNotifier {
-  var tasks = Hive.box<PlannerTask>('planner-tasks');
+  Box<PlannerTask> tasks = Hive.box<PlannerTask>('planner-tasks2');
 
   List<PlannerTaskType> taskTypes = [
     PlannerTaskType('School'),
@@ -62,6 +62,23 @@ class PlannerState extends ChangeNotifier {
     currentTaskType = taskType;
     notifyListeners();
   }
+
+  void completeTask(PlannerTask task) {
+    task.isDone = true;
+    tasks.put(task.uuid, task);
+    notifyListeners();
+  }
+
+  void uncompleteTask(PlannerTask task) {
+    task.isDone = false;
+    tasks.put(task.uuid, task);
+    notifyListeners();
+  }
+
+  void deleteTask(PlannerTask task) {
+    tasks.delete(task.uuid);
+    notifyListeners();
+  }
 }
 
 class MainApp extends StatefulWidget {
@@ -86,7 +103,8 @@ class _MainAppState extends State<MainApp> {
               HomePage(plannerState: context.watch<PlannerState>()),
           '/add_task': (context) =>
               AddTaskPage(plannerState: context.watch<PlannerState>()),
-          '/view_tasktype': (context) => const ViewTaskTypePage(),
+          /*'/view_tasktype': (context) =>
+              ViewTaskTypePage(plannerState: context.watch<PlannerState>()),*/
         },
         theme: ThemeData(
           primaryColor: Colors.black,
