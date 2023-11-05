@@ -26,11 +26,12 @@ List<Widget> getTaskContainers(PlannerState plannerState) {
 }
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final PlannerState plannerState;
+  const HomePage({super.key, required this.plannerState});
 
   @override
   Widget build(BuildContext context) {
-    var plannerState = context.watch<PlannerState>();
+    //var plannerState = context.watch<PlannerState>();
     return DefaultTabController(
       length: 3,
       child: SafeArea(

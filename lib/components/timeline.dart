@@ -210,23 +210,29 @@ class TimelineView extends StatelessWidget {
     List<Widget> indicators = [];
     Map<DateTime, List<Widget>> tasksFromToday = {};
     DateTime currentTime = DateTime.now();
+    currentTime =
+        DateTime(currentTime.year, currentTime.month, currentTime.day);
     for (var task in plannerState.tasks.values) {
-      if (task.startTime.isAfter(currentTime)) {
-        DateTime reducedTime = DateTime(
-            task.startTime.year, task.startTime.month, task.startTime.day);
-        if (!tasksFromToday.containsKey(reducedTime)) {
-          tasksFromToday[reducedTime] = [];
+      DateTime reducedStartTime = DateTime(
+          task.startTime.year, task.startTime.month, task.startTime.day);
+      if (reducedStartTime.isAfter(currentTime) ||
+          reducedStartTime.isAtSameMomentAs(currentTime)) {
+        if (!tasksFromToday.containsKey(reducedStartTime)) {
+          tasksFromToday[reducedStartTime] = [];
         }
-        tasksFromToday[reducedTime]!.add(getTaskButton(context, task, true));
+        tasksFromToday[reducedStartTime]!
+            .add(getTaskButton(context, task, true));
       }
       if (task.endTime != null) {
-        if (task.endTime!.isAfter(currentTime)) {
-          DateTime reducedTime = DateTime(
-              task.endTime!.year, task.endTime!.month, task.endTime!.day);
-          if (!tasksFromToday.containsKey(reducedTime)) {
-            tasksFromToday[reducedTime] = [];
+        DateTime reducedEndTime = DateTime(
+            task.endTime!.year, task.endTime!.month, task.endTime!.day);
+        if (reducedEndTime.isAfter(currentTime) ||
+            reducedEndTime.isAtSameMomentAs(currentTime)) {
+          if (!tasksFromToday.containsKey(reducedEndTime)) {
+            tasksFromToday[reducedEndTime] = [];
           }
-          tasksFromToday[reducedTime]!.add(getTaskButton(context, task, false));
+          tasksFromToday[reducedEndTime]!
+              .add(getTaskButton(context, task, false));
         }
       }
     }

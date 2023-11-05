@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hive_flutter/hive_flutter.dart';
 import 'package:peeto_planner/pages/homepage.dart';
 import 'package:peeto_planner/utils/task_type.dart';
 import 'package:provider/provider.dart';
@@ -7,11 +8,19 @@ import 'pages/add_task.dart';
 import 'pages/view_tasktype.dart';
 import 'utils/pages.dart';
 
-void main() {
+void main() async {
+  await Hive.initFlutter();
+
+  Hive.registerAdapter(PlannerTaskAdapter());
+  Hive.registerAdapter(PlannerTaskTypeAdapter());
+
+  await Hive.openBox<PlannerTask>('planner-tasks');
   runApp(const MainApp());
 }
 
 class PlannerState extends ChangeNotifier {
+  var tasks = Hive.box<PlannerTask>('planner-tasks');
+
   List<PlannerTaskType> taskTypes = [
     PlannerTaskType('School'),
     PlannerTaskType('Work'),
@@ -19,14 +28,18 @@ class PlannerState extends ChangeNotifier {
     PlannerTaskType('Other'),
   ];
 
-  Map<String, PlannerTask> tasks = {};
+  //Map<String, PlannerTask> tasks = {};
 
   PlannerPage currentPage = PlannerPage.HOME_PAGE;
   PlannerTask? currentTask;
   PlannerTaskType? currentTaskType;
 
+  get title => null;
+
   void addTask(PlannerTask task) {
-    tasks[task.uuid] = task;
+    //var taskBox = Hive.box<PlannerTask>('planner-tasks');
+    tasks.put(task.uuid, task);
+    //tasks.put(task.uuid, task);
     notifyListeners();
   }
 
@@ -69,7 +82,8 @@ class _MainAppState extends State<MainApp> {
         title: 'Peeto Planner',
         initialRoute: '/',
         routes: {
-          '/': (context) => const HomePage(),
+          '/': (context) =>
+              HomePage(plannerState: context.watch<PlannerState>()),
           '/add_task': (context) =>
               AddTaskPage(plannerState: context.watch<PlannerState>()),
           '/view_tasktype': (context) => const ViewTaskTypePage(),

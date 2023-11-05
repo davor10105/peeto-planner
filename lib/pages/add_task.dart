@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
@@ -40,8 +42,8 @@ class _AddTaskPageState extends State<AddTaskPage> {
         : widget.plannerState.taskTypes.first;
     _controller = widget.plannerState.currentTask != null
         ? QuillController(
-            document: Document.fromDelta(
-                widget.plannerState.currentTask!.description),
+            document: Document.fromJson(
+                jsonDecode(widget.plannerState.currentTask!.description)),
             selection: const TextSelection.collapsed(offset: 0),
           )
         : QuillController.basic();
@@ -346,8 +348,8 @@ class _AddTaskPageState extends State<AddTaskPage> {
                           ),
                           MaterialButton(
                             onPressed: () {
-                              var descriptionDelta =
-                                  _controller.document.toDelta();
+                              var descriptionDelta = jsonEncode(
+                                  _controller.document.toDelta().toJson());
                               var textDescription =
                                   _controller.document.toPlainText();
                               plannerState.addTask(
