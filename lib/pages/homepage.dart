@@ -25,9 +25,32 @@ List<Widget> getTaskContainers(PlannerState plannerState) {
   return taskContainers;
 }
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   final PlannerState plannerState;
   const HomePage({super.key, required this.plannerState});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
+  late AnimationController bottomDrawerController;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    bottomDrawerController = BottomSheet.createAnimationController(this);
+    bottomDrawerController.duration = const Duration(milliseconds: 500);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    bottomDrawerController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -37,27 +60,56 @@ class HomePage extends StatelessWidget {
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
-            title: const Text('MIU'),
+            backgroundColor: Colors.white,
+            leading: Image.asset(
+              'lib/images/cat.gif',
+              height: 50,
+            ),
+            title: Text(
+              'Peeto Planner',
+              style: TextStyle(fontSize: 36, color: Colors.blueGrey),
+            ),
             bottom: const TabBar(
+              labelColor: Colors.blueGrey,
               tabs: [
-                Tab(icon: Icon(Icons.task)),
-                Tab(icon: Icon(Icons.calendar_month)),
-                Tab(icon: Icon(Icons.timeline)),
+                Tab(
+                  icon: Icon(Icons.task),
+                  text: 'Tasks',
+                ),
+                Tab(
+                  icon: Icon(Icons.calendar_month),
+                  text: 'Calendar',
+                ),
+                Tab(
+                  icon: Icon(Icons.timeline),
+                  text: 'Timeline',
+                ),
               ],
             ),
           ),
-          floatingActionButton: FloatingActionButton(
+          floatingActionButton: FloatingActionButton.extended(
+            icon: const Icon(Icons.add),
+            label: Text('Add Task'),
             onPressed: () {
-              plannerState.setCurrentTask(null);
-              Navigator.pushNamed(context, '/add_task');
+              widget.plannerState.setCurrentTask(null);
+              //Navigator.pushNamed(context, '/add_task');
+              showModalBottomSheet<void>(
+                isScrollControlled: true,
+                transitionAnimationController: bottomDrawerController,
+                context: context,
+                builder: (BuildContext context) {
+                  return FractionallySizedBox(
+                      heightFactor: 0.85,
+                      child: AddTaskPage(plannerState: widget.plannerState));
+                },
+              );
             },
-            child: Icon(Icons.add),
           ),
           body: TabBarView(
             children: [
-              TaskTypeListView(plannerState: plannerState),
-              CalendarView(plannerState: plannerState),
-              TimelineView(plannerState: plannerState),
+              TaskTypeListView(plannerState: widget.plannerState),
+              CalendarView(plannerState: widget.plannerState),
+              TimelineView(plannerState: widget.plannerState),
             ],
           ),
         ),

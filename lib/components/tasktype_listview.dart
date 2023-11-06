@@ -5,6 +5,10 @@ import '../pages/view_tasktype.dart';
 import '../utils/task_type.dart';
 import 'task.dart';
 
+Map<String, String> imagePathFromTaskTypeName = {
+  'School': 'lib/images/school.gif',
+};
+
 class TaskTypeListView extends StatelessWidget {
   final PlannerState plannerState;
   const TaskTypeListView({super.key, required this.plannerState});
@@ -37,21 +41,33 @@ class TaskTypeListView extends StatelessWidget {
                 )),
               ),
             ),*/
-                Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(8.0),
+                Padding(
+              padding: const EdgeInsets.only(
+                bottom: 16.0,
               ),
-              child: ExpansionTile(
-                title: Text(plannerState.taskTypes[index].typeName),
-                subtitle: getTaskTypeInfo(
-                    context, plannerState, plannerState.taskTypes[index]),
-                children: <Widget>[
-                  ViewTaskTypePage(
-                    plannerState: plannerState,
-                    currentPlannerTaskType: plannerState.taskTypes[index],
-                  ),
-                ],
+              child: Container(
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8.0),
+                  boxShadow: [
+                    BoxShadow(
+                        color: Color.fromARGB(83, 0, 0, 0),
+                        blurRadius: 8,
+                        spreadRadius: 2),
+                  ],
+                ),
+                child: ExpansionTile(
+                  leading: Image.asset('lib/images/school.gif'),
+                  title: Text(plannerState.taskTypes[index].typeName),
+                  subtitle: getTaskTypeInfo(
+                      context, plannerState, plannerState.taskTypes[index]),
+                  children: <Widget>[
+                    ViewTaskTypePage(
+                      plannerState: plannerState,
+                      currentPlannerTaskType: plannerState.taskTypes[index],
+                    ),
+                  ],
+                ),
               ),
             ),
           );

@@ -9,8 +9,11 @@ import 'package:provider/provider.dart';
 
 import '../components/appbar.dart';
 
-List<Widget> getTaskContainers(PlannerState plannerState, BuildContext context,
-    PlannerTaskType currentPlannerTaskType) {
+List<Widget> getTaskContainers(
+    PlannerState plannerState,
+    BuildContext context,
+    PlannerTaskType currentPlannerTaskType,
+    AnimationController bottomDrawerController) {
   List<Widget> taskContainers = [];
   for (var task in plannerState.tasks.values) {
     if (currentPlannerTaskType.typeName != task.taskType.typeName) {
@@ -19,7 +22,17 @@ List<Widget> getTaskContainers(PlannerState plannerState, BuildContext context,
     taskContainers.add(InkWell(
       onTap: () {
         plannerState.setCurrentTask(task);
-        Navigator.pushNamed(context, '/add_task');
+        //Navigator.pushNamed(context, '/add_task');
+        showModalBottomSheet<void>(
+          isScrollControlled: true,
+          transitionAnimationController: bottomDrawerController,
+          context: context,
+          builder: (BuildContext context) {
+            return FractionallySizedBox(
+                heightFactor: 0.85,
+                child: AddTaskPage(plannerState: plannerState));
+          },
+        );
       },
       child: Slidable(
         // Specify a key if the Slidable is dismissible.
@@ -147,13 +160,37 @@ List<Widget> getTaskContainers(PlannerState plannerState, BuildContext context,
   return taskContainers;
 }
 
-class ViewTaskTypePage extends StatelessWidget {
+class ViewTaskTypePage extends StatefulWidget {
   final PlannerState plannerState;
   final PlannerTaskType currentPlannerTaskType;
   const ViewTaskTypePage(
       {super.key,
       required this.plannerState,
       required this.currentPlannerTaskType});
+
+  @override
+  State<ViewTaskTypePage> createState() => _ViewTaskTypePageState();
+}
+
+class _ViewTaskTypePageState extends State<ViewTaskTypePage>
+    with TickerProviderStateMixin {
+  late AnimationController bottomDrawerController;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    bottomDrawerController = BottomSheet.createAnimationController(this);
+    bottomDrawerController.duration = const Duration(milliseconds: 500);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    bottomDrawerController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -180,7 +217,7 @@ class ViewTaskTypePage extends StatelessWidget {
     );*/
 
     return Column(
-        children:
-            getTaskContainers(plannerState, context, currentPlannerTaskType));
+        children: getTaskContainers(widget.plannerState, context,
+            widget.currentPlannerTaskType, bottomDrawerController));
   }
 }

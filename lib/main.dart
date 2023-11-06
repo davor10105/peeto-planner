@@ -101,14 +101,17 @@ class _MainAppState extends State<MainApp> {
         routes: {
           '/': (context) =>
               HomePage(plannerState: context.watch<PlannerState>()),
-          '/add_task': (context) =>
-              AddTaskPage(plannerState: context.watch<PlannerState>()),
+          /*'/add_task': (context) =>
+              AddTaskPage(plannerState: context.watch<PlannerState>()),*/
           /*'/view_tasktype': (context) =>
               ViewTaskTypePage(plannerState: context.watch<PlannerState>()),*/
         },
         theme: ThemeData(
           primaryColor: Colors.black,
-          scaffoldBackgroundColor: Colors.grey[500],
+          scaffoldBackgroundColor: Color.fromARGB(255, 190, 225, 253),
+          floatingActionButtonTheme: FloatingActionButtonThemeData(
+            backgroundColor: Color.fromARGB(255, 81, 177, 255),
+          ),
 
           // Define the default font family.
           fontFamily: 'Roboto',

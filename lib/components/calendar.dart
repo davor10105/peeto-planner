@@ -3,6 +3,8 @@ import 'package:peeto_planner/components/task.dart';
 import 'package:peeto_planner/main.dart';
 import 'package:table_calendar/table_calendar.dart';
 
+import '../pages/add_task.dart';
+
 class CalendarView extends StatefulWidget {
   final PlannerState plannerState;
   const CalendarView({super.key, required this.plannerState});
@@ -11,11 +13,29 @@ class CalendarView extends StatefulWidget {
   State<CalendarView> createState() => _CalendarViewState();
 }
 
-class _CalendarViewState extends State<CalendarView> {
+class _CalendarViewState extends State<CalendarView>
+    with TickerProviderStateMixin {
   CalendarFormat _calendarFormat = CalendarFormat.month;
   DateTime _focusedDay = DateTime.now();
   DateTime? _selectedDay;
   List<PlannerTask> selectedTasks = [];
+  late AnimationController bottomDrawerController;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    bottomDrawerController = BottomSheet.createAnimationController(this);
+    bottomDrawerController.duration = const Duration(milliseconds: 500);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    bottomDrawerController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -36,6 +56,10 @@ class _CalendarViewState extends State<CalendarView> {
               lastDay: today.add(const Duration(days: 365)),
               focusedDay: _focusedDay,
               calendarFormat: _calendarFormat,
+              startingDayOfWeek: StartingDayOfWeek.monday,
+              daysOfWeekStyle: const DaysOfWeekStyle(
+                  weekdayStyle: TextStyle(fontSize: 12),
+                  weekendStyle: TextStyle(fontSize: 12)),
               eventLoader: getEventsForDay,
               selectedDayPredicate: (day) {
                 // Use `selectedDayPredicate` to determine which day is currently selected.
@@ -86,7 +110,18 @@ class _CalendarViewState extends State<CalendarView> {
                       onTap: () {
                         widget.plannerState
                             .setCurrentTask(selectedTasks[index]);
-                        Navigator.pushNamed(context, '/add_task');
+                        //Navigator.pushNamed(context, '/add_task');
+                        showModalBottomSheet<void>(
+                          isScrollControlled: true,
+                          transitionAnimationController: bottomDrawerController,
+                          context: context,
+                          builder: (BuildContext context) {
+                            return FractionallySizedBox(
+                                heightFactor: 0.85,
+                                child: AddTaskPage(
+                                    plannerState: widget.plannerState));
+                          },
+                        );
                       },
                       title: Text('${selectedTasks[index].title}'),
                     ),
@@ -107,6 +142,10 @@ class _CalendarViewState extends State<CalendarView> {
           task.startTime.month == day.month &&
           task.startTime.day == day.day) {
         dayTasks.add(task);
+      } else if (task.endTime != null) {
+        if (day.isBefore(task.endTime!) && day.isAfter(task.startTime)) {
+          dayTasks.add(task);
+        }
       }
     }
     return dayTasks;

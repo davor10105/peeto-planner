@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:peeto_planner/components/task.dart';
 import 'package:peeto_planner/main.dart';
 
+import '../pages/add_task.dart';
+
 class Timeline extends StatelessWidget {
   const Timeline({
     Key? key,
@@ -183,13 +185,36 @@ class _TimelinePainter extends CustomPainter {
   }
 }
 
-class TimelineView extends StatelessWidget {
+class TimelineView extends StatefulWidget {
   final PlannerState plannerState;
   const TimelineView({super.key, required this.plannerState});
 
   @override
+  State<TimelineView> createState() => _TimelineViewState();
+}
+
+class _TimelineViewState extends State<TimelineView>
+    with TickerProviderStateMixin {
+  late AnimationController bottomDrawerController;
+
+  @override
+  void initState() {
+    // TODO: implement initState
+    super.initState();
+
+    bottomDrawerController = BottomSheet.createAnimationController(this);
+    bottomDrawerController.duration = const Duration(milliseconds: 500);
+  }
+
+  @override
+  void dispose() {
+    // TODO: implement dispose
+    bottomDrawerController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
-    var color = Colors.amber;
     List<List<Widget>> indicatorAndChildren = getIndicatorAndTasks(context);
     return Padding(
       padding: const EdgeInsets.all(8.0),
@@ -212,17 +237,34 @@ class TimelineView extends StatelessWidget {
     DateTime currentTime = DateTime.now();
     currentTime =
         DateTime(currentTime.year, currentTime.month, currentTime.day);
-    for (var task in plannerState.tasks.values) {
+    for (var task in widget.plannerState.tasks.values) {
       DateTime reducedStartTime = DateTime(
           task.startTime.year, task.startTime.month, task.startTime.day);
+      // start time after today
       if (reducedStartTime.isAfter(currentTime) ||
           reducedStartTime.isAtSameMomentAs(currentTime)) {
         if (!tasksFromToday.containsKey(reducedStartTime)) {
           tasksFromToday[reducedStartTime] = [];
         }
         tasksFromToday[reducedStartTime]!
-            .add(getTaskButton(context, task, true));
+            .add(getTaskButton(context, task, 'Starting'));
       }
+
+      // start time before today, but end time exists and today is in range
+      if (reducedStartTime.isBefore(currentTime) && task.endTime != null) {
+        if (task.endTime!.isAfter(currentTime)) {
+          DateTime reducedCurrentTime =
+              DateTime(currentTime.year, currentTime.month, currentTime.day);
+
+          if (!tasksFromToday.containsKey(reducedCurrentTime)) {
+            tasksFromToday[reducedCurrentTime] = [];
+          }
+          tasksFromToday[reducedCurrentTime]!
+              .add(getTaskButton(context, task, 'On-Going'));
+        }
+      }
+
+      // end time exists and is after today
       if (task.endTime != null) {
         DateTime reducedEndTime = DateTime(
             task.endTime!.year, task.endTime!.month, task.endTime!.day);
@@ -232,7 +274,7 @@ class TimelineView extends StatelessWidget {
             tasksFromToday[reducedEndTime] = [];
           }
           tasksFromToday[reducedEndTime]!
-              .add(getTaskButton(context, task, false));
+              .add(getTaskButton(context, task, 'Ending'));
         }
       }
     }
@@ -242,40 +284,91 @@ class TimelineView extends StatelessWidget {
 
     List<Widget> combinedTasksFromToday = [];
     for (var entry in sortedTasksFromToday.entries) {
-      combinedTasksFromToday.add(Container(
-        decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.circular(8.0),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.grey,
-                spreadRadius: 2.0,
-                blurRadius: 3.0,
-              )
-            ]),
-        child: Column(
-          children: entry.value,
+      combinedTasksFromToday.add(Padding(
+        padding: const EdgeInsets.all(8.0),
+        child: Container(
+          decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(8.0),
+              boxShadow: const [
+                BoxShadow(
+                  color: Colors.grey,
+                  spreadRadius: 2.0,
+                  blurRadius: 3.0,
+                )
+              ]),
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: entry.value,
+            ),
+          ),
         ),
       ));
       indicators.add(Center(
-        child: Text(
-          '${entry.key.day.toString().padLeft(2, '0')}.${entry.key.month.toString().padLeft(2, '0')}.${entry.key.year.toString().padLeft(2, '0')}',
-          style: TextStyle(
-            fontSize: 8,
-          ),
-        ),
+        child: currentTime.isAtSameMomentAs(entry.key)
+            ? const Text(
+                'Today',
+                style: TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                ),
+              )
+            : Text(
+                '${entry.key.day.toString().padLeft(2, '0')}.${entry.key.month.toString().padLeft(2, '0')}.${entry.key.year.toString().padLeft(2, '0')}',
+                style: const TextStyle(
+                  fontSize: 8,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
       ));
     }
 
     return [indicators, combinedTasksFromToday];
   }
 
-  Widget getTaskButton(BuildContext context, PlannerTask task, bool isStart) {
+  Widget getTaskButton(BuildContext context, PlannerTask task, String prefix) {
     return InkWell(
         onTap: () {
-          plannerState.setCurrentTask(task);
-          Navigator.pushNamed(context, '/add_task');
+          widget.plannerState.setCurrentTask(task);
+          //Navigator.pushNamed(context, '/add_task');
+          showModalBottomSheet<void>(
+            isScrollControlled: true,
+            transitionAnimationController: bottomDrawerController,
+            context: context,
+            builder: (BuildContext context) {
+              return FractionallySizedBox(
+                  heightFactor: 0.85,
+                  child: AddTaskPage(plannerState: widget.plannerState));
+            },
+          );
         },
-        child: Text(task.title));
+        child: Padding(
+          padding: const EdgeInsets.all(8.0),
+          child: Container(
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(8.0),
+              border: Border.fromBorderSide(
+                BorderSide(
+                  color: const Color.fromARGB(118, 96, 125, 139),
+                ),
+              ),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceAround,
+                children: [
+                  Text(task.title),
+                  Text(
+                    prefix,
+                    style: TextStyle(fontSize: 10, color: Colors.blueGrey),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ));
   }
 }
