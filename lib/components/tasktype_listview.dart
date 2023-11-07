@@ -7,6 +7,9 @@ import 'task.dart';
 
 Map<String, String> imagePathFromTaskTypeName = {
   'School': 'lib/images/school.gif',
+  'Fun': 'lib/images/mouse.gif',
+  'Exercise': 'lib/images/dumbbells.gif',
+  'Other': 'lib/images/pisces.gif',
 };
 
 class TaskTypeListView extends StatelessWidget {
@@ -57,14 +60,21 @@ class TaskTypeListView extends StatelessWidget {
                   ],
                 ),
                 child: ExpansionTile(
-                  leading: Image.asset('lib/images/school.gif'),
+                  leading: Image.asset(
+                    imagePathFromTaskTypeName[
+                        plannerState.taskTypes[index].typeName]!,
+                    height: 100,
+                  ),
                   title: Text(plannerState.taskTypes[index].typeName),
                   subtitle: getTaskTypeInfo(
                       context, plannerState, plannerState.taskTypes[index]),
                   children: <Widget>[
-                    ViewTaskTypePage(
-                      plannerState: plannerState,
-                      currentPlannerTaskType: plannerState.taskTypes[index],
+                    Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ViewTaskTypePage(
+                        plannerState: plannerState,
+                        currentPlannerTaskType: plannerState.taskTypes[index],
+                      ),
                     ),
                   ],
                 ),

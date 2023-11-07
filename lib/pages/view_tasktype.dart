@@ -19,108 +19,143 @@ List<Widget> getTaskContainers(
     if (currentPlannerTaskType.typeName != task.taskType.typeName) {
       continue;
     }
-    taskContainers.add(InkWell(
-      onTap: () {
-        plannerState.setCurrentTask(task);
-        //Navigator.pushNamed(context, '/add_task');
-        showModalBottomSheet<void>(
-          isScrollControlled: true,
-          transitionAnimationController: bottomDrawerController,
-          context: context,
-          builder: (BuildContext context) {
-            return FractionallySizedBox(
-                heightFactor: 0.85,
-                child: AddTaskPage(plannerState: plannerState));
-          },
-        );
-      },
-      child: Slidable(
-        // Specify a key if the Slidable is dismissible.
-        //key: const ValueKey(0),
-        direction: Axis.horizontal,
+    taskContainers.add(Padding(
+      padding: const EdgeInsets.only(top: 8.0),
+      child: InkWell(
+        onTap: () {
+          plannerState.setCurrentTask(task);
+          //Navigator.pushNamed(context, '/add_task');
+          showModalBottomSheet<void>(
+            isScrollControlled: true,
+            transitionAnimationController: bottomDrawerController,
+            context: context,
+            builder: (BuildContext context) {
+              return FractionallySizedBox(
+                  heightFactor: 0.85,
+                  child: AddTaskPage(plannerState: plannerState));
+            },
+          );
+        },
+        child: Slidable(
+          // Specify a key if the Slidable is dismissible.
+          //key: const ValueKey(0),
+          direction: Axis.horizontal,
 
-        // The start action pane is the one at the left or the top side.
-        endActionPane: ActionPane(
-          extentRatio: 0.8,
-          // A motion is a widget used to control how the pane animates.
-          motion: const BehindMotion(),
+          // The start action pane is the one at the left or the top side.
+          endActionPane: ActionPane(
+            extentRatio: 0.8,
+            // A motion is a widget used to control how the pane animates.
+            motion: const BehindMotion(),
 
-          // A pane can dismiss the Slidable.
-          //dismissible: DismissiblePane(onDismissed: () {}),
+            // A pane can dismiss the Slidable.
+            //dismissible: DismissiblePane(onDismissed: () {}),
 
-          // All actions are defined in the children parameter.
-          children: [
-            // A SlidableAction can have an icon and/or a label.
-            SlidableAction(
-              onPressed: (context) {
-                if (!task.isDone) {
-                  plannerState.completeTask(task);
-                } else {
-                  plannerState.uncompleteTask(task);
-                }
-              },
-              flex: 2,
-              backgroundColor:
-                  task.isDone ? Colors.blueGrey : Colors.greenAccent,
-              foregroundColor: Colors.white,
-              icon: Icons.check,
-              label: task.isDone ? 'Un-Complete' : 'Complete',
-              borderRadius: const BorderRadius.only(
-                topRight: Radius.circular(8.0),
-                topLeft: Radius.circular(8.0),
+            // All actions are defined in the children parameter.
+            children: [
+              // A SlidableAction can have an icon and/or a label.
+              SlidableAction(
+                onPressed: (context) {
+                  if (!task.isDone) {
+                    plannerState.completeTask(task);
+                  } else {
+                    plannerState.uncompleteTask(task);
+                  }
+                },
+                flex: 2,
+                backgroundColor:
+                    task.isDone ? Colors.blueGrey : Colors.greenAccent,
+                foregroundColor: Colors.white,
+                icon: Icons.check,
+                label: task.isDone ? 'Un-Complete' : 'Complete',
+                borderRadius: const BorderRadius.only(
+                  topRight: Radius.circular(8.0),
+                  topLeft: Radius.circular(8.0),
+                ),
               ),
-            ),
-            SlidableAction(
-              onPressed: (context) {
-                plannerState.deleteTask(task);
-                print('DELETED');
-              },
-              backgroundColor: Colors.redAccent,
-              foregroundColor: Colors.white,
-              icon: Icons.delete,
-              label: 'Delete',
-              borderRadius: const BorderRadius.only(
-                bottomRight: Radius.circular(8.0),
-                bottomLeft: Radius.circular(8.0),
+              SlidableAction(
+                onPressed: (context) {
+                  plannerState.deleteTask(task);
+                  print('DELETED');
+                },
+                backgroundColor: Colors.redAccent,
+                foregroundColor: Colors.white,
+                icon: Icons.delete,
+                label: 'Delete',
+                borderRadius: const BorderRadius.only(
+                  bottomRight: Radius.circular(8.0),
+                  bottomLeft: Radius.circular(8.0),
+                ),
               ),
+            ],
+          ),
+          child: /*ListTile(
+            title: Text(
+              task.title,
+              style: Theme.of(context).textTheme.bodyMedium,
             ),
-          ],
+            subtitle: Text(
+              task.textDescription,
+              style: Theme.of(context).textTheme.bodySmall,
+            ),
+          ), */
+              Container(
+            clipBehavior: Clip.hardEdge,
+            height: 150,
+            decoration: BoxDecoration(
+                color: Color.fromARGB(255, 223, 239, 252),
+                border: Border.all(
+                  color: Color.fromARGB(255, 190, 225, 253),
+                ),
+                borderRadius: BorderRadius.all(Radius.circular(8.0))),
+            child: Center(
+                child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.start,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Expanded(
+                        child: Center(
+                          child: Text(
+                            task.title,
+                            style: TextStyle(
+                              color: Colors.blueAccent,
+                            ),
+                          ),
+                        ),
+                      ),
+                      task.isDone ? Icon(Icons.check) : Container(),
+                    ],
+                  ),
+                  Text(
+                    task.textDescription,
+                    style: TextStyle(
+                      color: const Color.fromARGB(255, 163, 204, 238),
+                      fontSize: 16,
+                    ),
+                  ),
+                ],
+              ),
+            )),
+          ),
         ),
-        child: /*ListTile(
-          title: Text(
-            task.title,
-            style: Theme.of(context).textTheme.bodyMedium,
-          ),
-          subtitle: Text(
-            task.textDescription,
-            style: Theme.of(context).textTheme.bodySmall,
-          ),
-        ), */
-            Container(
+        /*Container(
           clipBehavior: Clip.hardEdge,
-          height: 150,
+          height: 50,
           decoration: const BoxDecoration(
-              color: Color.fromARGB(255, 224, 224, 224),
+              color: Colors.white,
               borderRadius: BorderRadius.all(Radius.circular(8.0))),
           child: Center(
               child: Padding(
-            padding: const EdgeInsets.all(16.0),
+            padding: const EdgeInsets.all(8.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Expanded(
-                      child: Center(
-                        child: Text(
-                          task.title,
-                          style: Theme.of(context).textTheme.bodyMedium,
-                        ),
-                      ),
-                    ),
-                    task.isDone ? Icon(Icons.check) : Container(),
-                  ],
+                Text(
+                  task.title,
+                  style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 Text(
                   task.textDescription,
@@ -129,32 +164,8 @@ List<Widget> getTaskContainers(
               ],
             ),
           )),
-        ),
+        ),*/
       ),
-      /*Container(
-        clipBehavior: Clip.hardEdge,
-        height: 50,
-        decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.all(Radius.circular(8.0))),
-        child: Center(
-            child: Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.start,
-            children: [
-              Text(
-                task.title,
-                style: Theme.of(context).textTheme.bodyMedium,
-              ),
-              Text(
-                task.textDescription,
-                style: Theme.of(context).textTheme.bodySmall,
-              ),
-            ],
-          ),
-        )),
-      ),*/
     ));
   }
   return taskContainers;

@@ -95,6 +95,7 @@ class _CalendarViewState extends State<CalendarView>
             const SizedBox(height: 8.0),
             Expanded(
               child: ListView.builder(
+                shrinkWrap: true,
                 itemCount: selectedTasks.length,
                 itemBuilder: (context, index) {
                   return Container(

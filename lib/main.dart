@@ -23,8 +23,8 @@ class PlannerState extends ChangeNotifier {
 
   List<PlannerTaskType> taskTypes = [
     PlannerTaskType('School'),
-    PlannerTaskType('Work'),
     PlannerTaskType('Fun'),
+    PlannerTaskType('Exercise'),
     PlannerTaskType('Other'),
   ];
 
