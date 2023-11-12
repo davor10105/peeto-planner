@@ -3,6 +3,7 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_quill/flutter_quill.dart';
+import 'package:peeto_planner/components/tasktype_listview.dart';
 import 'package:provider/provider.dart';
 
 import '../components/appbar.dart';
@@ -35,10 +36,10 @@ class _AddTaskPageState extends State<AddTaskPage> {
 
     titleController = TextEditingController(
         text: widget.plannerState.currentTask == null
-            ? 'New Task'
+            ? 'New Title'
             : widget.plannerState.currentTask!.title);
-    selectedTaskType = widget.plannerState.currentTaskType != null
-        ? widget.plannerState.currentTaskType!
+    selectedTaskType = widget.plannerState.currentTask != null
+        ? widget.plannerState.currentTask!.taskType
         : widget.plannerState.taskTypes.first;
     _controller = widget.plannerState.currentTask != null
         ? QuillController(
@@ -68,166 +69,428 @@ class _AddTaskPageState extends State<AddTaskPage> {
           locale: Locale('en'),
         ),
       ),
-      child: Stack(
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Container(
+      child: Padding(
+        padding:
+            EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Stack(
+          children: [
+            Container(
               decoration: const BoxDecoration(
-                borderRadius: BorderRadius.all(
-                  Radius.circular(8.0),
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(8.0),
+                  topRight: Radius.circular(8.0),
                 ),
                 color: Colors.white,
               ),
               child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: TextFormField(
-                      controller: titleController,
-                    ),
-                  ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceAround,
-                    children: [
-                      // start date
-                      MaterialButton(
-                        color: Theme.of(context).cardColor,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Text(
-                              'Start date:',
-                              style: Theme.of(context).textTheme.labelSmall,
-                            ),
-                            Text(
-                              '${selectedStartTime.day.toString().padLeft(2, '0')}.${selectedStartTime.month.toString().padLeft(2, '0')}.${selectedStartTime.year} - ${selectedStartTime.hour.toString().padLeft(2, '0')}:${selectedStartTime.minute.toString().padLeft(2, '0')}',
-                              style: Theme.of(context).textTheme.labelMedium,
-                            )
-                          ],
-                        ),
-                        onPressed: () async {
-                          final date = await showDatePicker(
-                              context: context,
-                              initialDate: currentDateTime,
-                              firstDate: currentDateTime
-                                  .subtract(const Duration(days: 365)),
-                              lastDate: currentDateTime
-                                  .add(const Duration(days: 365)));
-                          if (date == null) return;
-
-                          if (mounted) {
-                            final time = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay.now(),
-                            );
-                            if (time == null) return;
-                            setState(() {
-                              selectedStartTime = DateTime(
-                                date.year,
-                                date.month,
-                                date.day,
-                                time.hour,
-                                time.minute,
-                              );
-                            });
-                          }
-                        },
+                  // top container
+                  Container(
+                    decoration: const BoxDecoration(
+                      color: Colors.blueGrey,
+                      borderRadius: BorderRadius.only(
+                        topLeft: Radius.circular(8.0),
+                        topRight: Radius.circular(8.0),
                       ),
+                    ),
+                    child: Column(
+                      children: [
+                        // buttons
+                        Padding(
+                          padding: const EdgeInsets.all(8.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            children: [
+                              InkWell(
+                                onTap: () => Navigator.pop(context),
+                                child: const Row(
+                                  children: [
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
+                                      child: Icon(
+                                        Icons.arrow_back,
+                                        color: Colors.white60,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Return',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              const Text(
+                                'Create a new task',
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.white70,
+                                ),
+                              ),
+                              InkWell(
+                                onTap: () {
+                                  var descriptionDelta = jsonEncode(
+                                      _controller.document.toDelta().toJson());
+                                  var textDescription =
+                                      _controller.document.toPlainText();
+                                  plannerState.addTask(
+                                    PlannerTask(
+                                        titleController.text,
+                                        descriptionDelta,
+                                        textDescription,
+                                        selectedTaskType,
+                                        selectedStartTime,
+                                        selectedEndTime,
+                                        plannerState.currentTask != null
+                                            ? plannerState.currentTask!.uuid
+                                            : null),
+                                  );
+                                  Navigator.pop(context);
+                                },
+                                child: const Row(
+                                  children: [
+                                    Padding(
+                                      padding:
+                                          const EdgeInsets.only(right: 8.0),
+                                      child: Icon(
+                                        Icons.save,
+                                        color: Colors.white60,
+                                        size: 20,
+                                      ),
+                                    ),
+                                    Text(
+                                      'Save',
+                                      style: TextStyle(
+                                        fontSize: 14,
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
 
-                      // end date
-                      MaterialButton(
-                        color: Theme.of(context).cardColor,
-                        child: Column(
+                        // title
+                        Padding(
+                          padding: const EdgeInsets.only(
+                            top: 16.0,
+                            left: 16.0,
+                          ),
+                          child: TextFormField(
+                            style: TextStyle(
+                              fontSize: 24,
+                              color: Colors.white,
+                            ),
+                            controller: titleController,
+                          ),
+                        ),
+
+                        // task type
+                        /*Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Text(
-                              'End date:',
-                              style: Theme.of(context).textTheme.labelSmall,
+                            DropdownMenu<PlannerTaskType>(
+                              textStyle: TextStyle(color: Colors.white),
+                              width: 300,
+                              initialSelection:
+                                  plannerState.currentTaskType != null
+                                      ? plannerState.currentTaskType
+                                      : plannerState.taskTypes.first,
+                              onSelected: (PlannerTaskType? newType) {
+                                // This is called when the user selects an item.
+                                setState(() {
+                                  selectedTaskType = newType!;
+                                });
+                              },
+                              dropdownMenuEntries: plannerState.taskTypes
+                                  .map<DropdownMenuEntry<PlannerTaskType>>(
+                                      (PlannerTaskType taskType) {
+                                return DropdownMenuEntry<PlannerTaskType>(
+                                    value: taskType, label: taskType.typeName);
+                              }).toList(),
                             ),
-                            selectedEndTime == null
-                                ? Text(
-                                    'None',
-                                    style:
-                                        Theme.of(context).textTheme.labelMedium,
-                                  )
-                                : Text(
-                                    '${selectedEndTime!.day.toString().padLeft(2, '0')}.${selectedEndTime!.month.toString().padLeft(2, '0')}.${selectedEndTime!.year} - ${selectedEndTime!.hour.toString().padLeft(2, '0')}:${selectedEndTime!.minute.toString().padLeft(2, '0')}',
-                                    style:
-                                        Theme.of(context).textTheme.labelMedium,
-                                  )
                           ],
-                        ),
-                        onPressed: () async {
-                          final date = await showDatePicker(
-                            context: context,
-                            initialDate: selectedEndTime ?? selectedStartTime,
-                            firstDate: selectedEndTime ?? selectedStartTime,
-                            lastDate: (selectedEndTime ?? selectedStartTime)
-                                .add(Duration(days: 365)),
-                          );
-                          if (date == null) return;
+                        ),*/
 
-                          if (mounted) {
-                            final time = await showTimePicker(
-                              context: context,
-                              initialTime: TimeOfDay.fromDateTime(
-                                  selectedEndTime ?? selectedStartTime),
-                            );
-                            if (time == null) return;
-                            if (mounted) {
-                              DateTime newEndTime = DateTime(date.year,
-                                  date.month, date.day, time.hour, time.minute);
-                              if (newEndTime.isBefore(selectedStartTime)) {
-                                showDialog(
-                                  context: context,
-                                  builder: (BuildContext context) {
-                                    return AlertDialog(
-                                      title: const Text('Miu!'),
-                                      content: const Text(
-                                        'End time must be after start time',
-                                      ),
-                                      actions: <Widget>[
-                                        TextButton(
-                                          style: TextButton.styleFrom(
-                                            textStyle: Theme.of(context)
-                                                .textTheme
-                                                .labelLarge,
+                        // date buttons
+                        Padding(
+                          padding: const EdgeInsets.all(16.0),
+                          child: Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceAround,
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              // start date
+                              InkWell(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Icon(
+                                          Icons.timer_outlined,
+                                          size: 14,
+                                          color: Colors.white70,
+                                        ),
+                                        SizedBox(
+                                          width: 3,
+                                        ),
+                                        Text(
+                                          'Start',
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 14,
                                           ),
-                                          child: const Text('OK'),
-                                          onPressed: () {
-                                            Navigator.of(context).pop();
-                                          },
                                         ),
                                       ],
+                                    ),
+                                    Text(
+                                      '${selectedStartTime.day.toString().padLeft(2, '0')}.${selectedStartTime.month.toString().padLeft(2, '0')}.${selectedStartTime.year}',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
+                                    ),
+                                    Text(
+                                      '${selectedStartTime.hour.toString().padLeft(2, '0')}:${selectedStartTime.minute.toString().padLeft(2, '0')}',
+                                      style: TextStyle(
+                                        color: Colors.white,
+                                        fontSize: 14,
+                                      ),
+                                    )
+                                  ],
+                                ),
+                                onTap: () async {
+                                  final date = await showDatePicker(
+                                      context: context,
+                                      initialDate: currentDateTime,
+                                      firstDate: currentDateTime
+                                          .subtract(const Duration(days: 365)),
+                                      lastDate: currentDateTime
+                                          .add(const Duration(days: 365)));
+                                  if (date == null) return;
+
+                                  if (mounted) {
+                                    final time = await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay.now(),
                                     );
-                                  },
-                                );
-                                return;
-                              }
-                              setState(() {
-                                selectedEndTime = newEndTime;
-                              });
-                            }
-                          }
-                        },
-                      ),
-                    ],
-                  ),
-                  Expanded(
-                    child: QuillEditor.basic(
-                      configurations: const QuillEditorConfigurations(
-                        padding: EdgeInsets.all(16.0),
-                        readOnly: false,
-                      ),
+                                    if (time == null) return;
+                                    setState(() {
+                                      selectedStartTime = DateTime(
+                                        date.year,
+                                        date.month,
+                                        date.day,
+                                        time.hour,
+                                        time.minute,
+                                      );
+                                    });
+                                  }
+                                },
+                              ),
+
+                              // end date
+                              InkWell(
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Icon(
+                                          Icons.timer_outlined,
+                                          size: 14,
+                                          color: Colors.white70,
+                                        ),
+                                        SizedBox(
+                                          width: 3,
+                                        ),
+                                        Text(
+                                          'End',
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    selectedEndTime == null
+                                        ? Text(
+                                            'Not set',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                            ),
+                                          )
+                                        : Text(
+                                            '${selectedEndTime!.day.toString().padLeft(2, '0')}.${selectedEndTime!.month.toString().padLeft(2, '0')}.${selectedEndTime!.year}',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                    selectedEndTime == null
+                                        ? Container()
+                                        : Text(
+                                            '${selectedEndTime!.hour.toString().padLeft(2, '0')}:${selectedEndTime!.minute.toString().padLeft(2, '0')}',
+                                            style: TextStyle(
+                                              color: Colors.white,
+                                              fontSize: 14,
+                                            ),
+                                          ),
+                                  ],
+                                ),
+                                onTap: () async {
+                                  final date = await showDatePicker(
+                                    context: context,
+                                    initialDate:
+                                        selectedEndTime ?? selectedStartTime,
+                                    firstDate:
+                                        selectedEndTime ?? selectedStartTime,
+                                    lastDate:
+                                        (selectedEndTime ?? selectedStartTime)
+                                            .add(Duration(days: 365)),
+                                  );
+                                  if (date == null) return;
+
+                                  if (mounted) {
+                                    final time = await showTimePicker(
+                                      context: context,
+                                      initialTime: TimeOfDay.fromDateTime(
+                                          selectedEndTime ?? selectedStartTime),
+                                    );
+                                    if (time == null) return;
+                                    if (mounted) {
+                                      DateTime newEndTime = DateTime(
+                                          date.year,
+                                          date.month,
+                                          date.day,
+                                          time.hour,
+                                          time.minute);
+                                      if (newEndTime
+                                          .isBefore(selectedStartTime)) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (BuildContext context) {
+                                            return AlertDialog(
+                                              title: const Text('Miu!'),
+                                              content: const Text(
+                                                'End time must be after start time',
+                                              ),
+                                              actions: <Widget>[
+                                                TextButton(
+                                                  style: TextButton.styleFrom(
+                                                    textStyle: Theme.of(context)
+                                                        .textTheme
+                                                        .labelLarge,
+                                                  ),
+                                                  child: const Text('OK'),
+                                                  onPressed: () {
+                                                    Navigator.of(context).pop();
+                                                  },
+                                                ),
+                                              ],
+                                            );
+                                          },
+                                        );
+                                        return;
+                                      }
+                                      setState(() {
+                                        selectedEndTime = newEndTime;
+                                      });
+                                    }
+                                  }
+                                },
+                              ),
+
+                              // task type
+                              PopupMenuButton<PlannerTaskType>(
+                                color: Colors.white,
+                                initialValue: plannerState.currentTaskType ??
+                                    plannerState.taskTypes.first,
+                                // Callback that sets the selected popup menu item.
+                                onSelected: (PlannerTaskType newType) {
+                                  setState(() {
+                                    selectedTaskType = newType;
+                                  });
+                                },
+                                itemBuilder: (BuildContext context) =>
+                                    plannerState.taskTypes
+                                        .map<PopupMenuItem<PlannerTaskType>>(
+                                            (PlannerTaskType taskType) {
+                                  return PopupMenuItem<PlannerTaskType>(
+                                    value: taskType,
+                                    child: Text(taskType.typeName),
+                                  );
+                                }).toList(),
+                                child: Column(
+                                  children: [
+                                    const Row(
+                                      mainAxisAlignment:
+                                          MainAxisAlignment.spaceAround,
+                                      children: [
+                                        Icon(
+                                          Icons.task,
+                                          size: 14,
+                                          color: Colors.white70,
+                                        ),
+                                        SizedBox(
+                                          width: 3,
+                                        ),
+                                        Text(
+                                          'Type',
+                                          style: TextStyle(
+                                            color: Colors.white70,
+                                            fontSize: 14,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    Padding(
+                                      padding: const EdgeInsets.only(top: 3.0),
+                                      child: ClipRRect(
+                                        borderRadius:
+                                            BorderRadius.circular(8.0),
+                                        child: Container(
+                                          decoration: const BoxDecoration(
+                                            color: Colors.white,
+                                          ),
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(3.0),
+                                            child: Image.asset(
+                                              imagePathFromTaskTypeName[
+                                                  selectedTaskType.typeName]!,
+                                              height: 30,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
                     ),
                   ),
+
                   QuillToolbarProvider(
                     toolbarConfigurations: const QuillToolbarConfigurations(),
                     child: QuillBaseToolbar(
                       configurations: QuillBaseToolbarConfigurations(
                         toolbarSize: 15 * 2,
-                        multiRowsDisplay: true,
+                        color: Colors.white,
+                        multiRowsDisplay: false,
                         childrenBuilder: (context) {
                           final controller = context.requireQuillController;
                           return [
@@ -316,75 +579,19 @@ class _AddTaskPageState extends State<AddTaskPage> {
                       ),
                     ),
                   ),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      MaterialButton(
-                        onPressed: () => Navigator.pop(context),
-                        child: const Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: Icon(Icons.arrow_back),
-                            ),
-                            Text('Return'),
-                          ],
-                        ),
+                  Expanded(
+                    child: QuillEditor.basic(
+                      configurations: const QuillEditorConfigurations(
+                        padding: EdgeInsets.all(16.0),
+                        readOnly: false,
                       ),
-                      MaterialButton(
-                        onPressed: () {
-                          var descriptionDelta = jsonEncode(
-                              _controller.document.toDelta().toJson());
-                          var textDescription =
-                              _controller.document.toPlainText();
-                          plannerState.addTask(
-                            PlannerTask(
-                                titleController.text,
-                                descriptionDelta,
-                                textDescription,
-                                selectedTaskType,
-                                selectedStartTime,
-                                selectedEndTime,
-                                plannerState.currentTask != null
-                                    ? plannerState.currentTask!.uuid
-                                    : null),
-                          );
-                          Navigator.pop(context);
-                        },
-                        child: const Row(
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(right: 8.0),
-                              child: Icon(Icons.save_outlined),
-                            ),
-                            Text('Save'),
-                          ],
-                        ),
-                      ),
-                      DropdownMenu<PlannerTaskType>(
-                        initialSelection: plannerState.currentTaskType != null
-                            ? plannerState.currentTaskType
-                            : plannerState.taskTypes.first,
-                        onSelected: (PlannerTaskType? newType) {
-                          // This is called when the user selects an item.
-                          setState(() {
-                            selectedTaskType = newType!;
-                          });
-                        },
-                        dropdownMenuEntries: plannerState.taskTypes
-                            .map<DropdownMenuEntry<PlannerTaskType>>(
-                                (PlannerTaskType taskType) {
-                          return DropdownMenuEntry<PlannerTaskType>(
-                              value: taskType, label: taskType.typeName);
-                        }).toList(),
-                      ),
-                    ],
+                    ),
                   ),
                 ],
               ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }

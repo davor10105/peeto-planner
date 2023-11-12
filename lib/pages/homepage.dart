@@ -94,13 +94,15 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               widget.plannerState.setCurrentTask(null);
               //Navigator.pushNamed(context, '/add_task');
               showModalBottomSheet<void>(
+                backgroundColor: Colors.transparent,
                 isScrollControlled: true,
                 transitionAnimationController: bottomDrawerController,
                 context: context,
                 builder: (BuildContext context) {
                   return FractionallySizedBox(
-                      heightFactor: 0.85,
-                      child: AddTaskPage(plannerState: widget.plannerState));
+                    heightFactor: 0.9,
+                    child: AddTaskPage(plannerState: widget.plannerState),
+                  );
                 },
               );
             },

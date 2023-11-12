@@ -334,6 +334,7 @@ class _TimelineViewState extends State<TimelineView>
           widget.plannerState.setCurrentTask(task);
           //Navigator.pushNamed(context, '/add_task');
           showModalBottomSheet<void>(
+            backgroundColor: Colors.transparent,
             isScrollControlled: true,
             transitionAnimationController: bottomDrawerController,
             context: context,
