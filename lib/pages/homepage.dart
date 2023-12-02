@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:peeto_planner/components/calendar.dart';
 import 'package:peeto_planner/components/task.dart';
 import 'package:peeto_planner/components/timeline.dart';
+import 'package:peeto_planner/components/weather.dart';
 import 'package:peeto_planner/main.dart';
 import 'package:peeto_planner/pages/add_task.dart';
 import 'package:peeto_planner/utils/pages.dart';
@@ -56,7 +57,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
   Widget build(BuildContext context) {
     //var plannerState = context.watch<PlannerState>();
     return DefaultTabController(
-      length: 3,
+      length: 4,
       child: SafeArea(
         child: Scaffold(
           appBar: AppBar(
@@ -83,6 +84,10 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
                 Tab(
                   icon: Icon(Icons.timeline),
                   text: 'Timeline',
+                ),
+                Tab(
+                  icon: Icon(Icons.sunny),
+                  text: 'Weather',
                 ),
               ],
             ),
@@ -112,6 +117,7 @@ class _HomePageState extends State<HomePage> with TickerProviderStateMixin {
               TaskTypeListView(plannerState: widget.plannerState),
               CalendarView(plannerState: widget.plannerState),
               TimelineView(plannerState: widget.plannerState),
+              WeatherView(plannerState: widget.plannerState),
             ],
           ),
         ),
