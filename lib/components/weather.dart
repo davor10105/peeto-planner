@@ -3,6 +3,16 @@ import 'package:geolocator/geolocator.dart';
 import 'package:peeto_planner/main.dart';
 import 'package:weather/weather.dart';
 
+List<String> weekdays = [
+  'Monday',
+  'Tuesday',
+  'Wednesday',
+  'Thursday',
+  'Friday',
+  'Saturday',
+  'Sunday',
+];
+
 class WeatherView extends StatefulWidget {
   final PlannerState plannerState;
   const WeatherView({super.key, required this.plannerState});
@@ -96,32 +106,232 @@ class _WeatherViewState extends State<WeatherView> {
           if (snapshot.hasData) {
             List<List<Weather>> sortedWeather =
                 sortForecastByDate(snapshot.data!);
-            return ListView.builder(
-              itemCount: sortedWeather.length,
-              itemBuilder: (BuildContext context, int index) {
-                return ExpansionTile(
-                  title: Text(sortedWeather[index].first.weatherDescription!),
-                  subtitle: Text(sortedWeather[index].first.date.toString()),
-                  children: [
-                    Expanded(
-                      child: ListView(
-                        scrollDirection: Axis.horizontal,
+            /*return Column(
+              children: [
+                Expanded(
+                  child: ListView.builder(
+                    itemCount: sortedWeather.length,
+                    shrinkWrap: true,
+                    itemBuilder: (BuildContext context, int index) {
+                      
+                    },
+                  ),
+                ),
+              ],
+            );*/
+            return Column(
+              children: [
+                Padding(
+                  padding: const EdgeInsets.only(
+                    top: 8.0,
+                    bottom: 16.0,
+                  ),
+                  child: Container(
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(8.0),
+                      boxShadow: [
+                        BoxShadow(
+                            color: Color.fromARGB(83, 0, 0, 0),
+                            blurRadius: 8,
+                            spreadRadius: 2),
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
                         children: [
-                          Text('MIU'),
-                          Text('GRAF'),
-                          Text('IC'),
+                          Text(sortedWeather.first.first.areaName.toString()),
+                          Text(
+                            sortedWeather.first.first.country.toString(),
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: Colors.blueGrey,
+                            ),
+                          ),
                         ],
                       ),
-                    )
-                  ],
-                );
-              },
+                    ),
+                  ),
+                ),
+                Expanded(
+                  child: ListView.builder(
+                      itemCount: sortedWeather.length,
+                      itemBuilder: (context, index) {
+                        Weather middleOfCurrentDay = sortedWeather[index]
+                            [(sortedWeather[index].length / 2).floor()];
+                        return Padding(
+                          padding: const EdgeInsets.only(
+                            bottom: 16.0,
+                          ),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              color: Colors.white,
+                              borderRadius: BorderRadius.circular(8.0),
+                              boxShadow: [
+                                BoxShadow(
+                                    color: Color.fromARGB(83, 0, 0, 0),
+                                    blurRadius: 8,
+                                    spreadRadius: 2),
+                              ],
+                            ),
+                            child: ExpansionTile(
+                              leading: Image.asset(getWeatherImagePath(
+                                  middleOfCurrentDay.weatherConditionCode!)),
+                              title: Text(weekdays[
+                                  middleOfCurrentDay.date!.weekday - 1]),
+                              subtitle: Row(
+                                children: [
+                                  Text(
+                                    middleOfCurrentDay.temperature!.celsius!
+                                            .round()
+                                            .toString() +
+                                        '°',
+                                    style: TextStyle(fontSize: 25),
+                                  ),
+                                  Text(
+                                    'Real',
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.grey),
+                                  ),
+                                  SizedBox(
+                                    width: 50,
+                                  ),
+                                  Text(
+                                    middleOfCurrentDay.tempFeelsLike!.celsius!
+                                            .round()
+                                            .toString() +
+                                        '°',
+                                    style: TextStyle(fontSize: 25),
+                                  ),
+                                  Text(
+                                    'Feel',
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.grey),
+                                  ),
+                                ],
+                              ),
+                              children:
+                                  getSingleWeatherTiles(sortedWeather[index]),
+                            ),
+                          ),
+                        );
+                      }),
+                ),
+              ],
             );
           } else if (snapshot.hasError) {
-            return Text('Please enable location services');
+            return const Center(
+              child: Text(
+                'Please enable location services',
+                style: TextStyle(color: Colors.white),
+              ),
+            );
           } else {
-            return Text('KITA');
+            return const Center(
+                child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                CircularProgressIndicator(),
+                SizedBox(
+                  height: 20,
+                ),
+                Text(
+                  'Loading weather data...',
+                  style: TextStyle(color: Colors.blueGrey),
+                )
+              ],
+            ));
           }
         });
+  }
+
+  String getWeatherImagePath(int weatherCode) {
+    String imagePath = 'lib/images/sun.gif';
+
+    if (weatherCode >= 200 && weatherCode < 300) {
+      imagePath = 'lib/images/storm.gif';
+    }
+    if (weatherCode >= 300 && weatherCode < 400) {
+      imagePath = 'lib/images/drizzle.gif';
+    }
+    if (weatherCode >= 500 && weatherCode < 502) {
+      imagePath = 'lib/images/light_rain.gif';
+    }
+    if (weatherCode >= 502 && weatherCode < 600) {
+      imagePath = 'lib/images/rain.gif';
+    }
+    if (weatherCode >= 600 && weatherCode < 700) {
+      imagePath = 'lib/images/snow.gif';
+    }
+    if (weatherCode >= 700 && weatherCode < 800) {
+      imagePath = 'lib/images/foggy.gif';
+    }
+    if (weatherCode >= 700 && weatherCode < 800) {
+      imagePath = 'lib/images/sun.gif';
+    }
+    if (weatherCode >= 800 && weatherCode < 803) {
+      imagePath = 'lib/images/cloudy.gif';
+    }
+    if (weatherCode >= 803 && weatherCode < 900) {
+      imagePath = 'lib/images/clouds.gif';
+    }
+    return imagePath;
+  }
+
+  List<Widget> getSingleWeatherTiles(List<Weather> dayWeathers) {
+    List<Widget> weatherTiles = [];
+    for (var dayWeather in dayWeathers) {
+      int weatherCode = dayWeather.weatherConditionCode!;
+      String imagePath = getWeatherImagePath(weatherCode);
+      weatherTiles.add(Padding(
+        padding: const EdgeInsets.only(bottom: 2.0),
+        child: ListTile(
+          tileColor: Colors.white,
+          title: Text(dayWeather.weatherDescription!),
+          leading: Image.asset(imagePath),
+          trailing: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Text(
+                dayWeather.date!.hour.toString() + 'h',
+                style: TextStyle(fontSize: 22),
+              ),
+              Text(
+                'Time',
+                style: TextStyle(fontSize: 8, color: Colors.grey),
+              ),
+            ],
+          ), //Text(dayWeather.temperature!.celsius!.round().toString()),
+          subtitle: Row(
+            children: [
+              Text(
+                dayWeather.temperature!.celsius!.round().toString() + '°',
+                style: TextStyle(fontSize: 25),
+              ),
+              Text(
+                'Real',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+              SizedBox(
+                width: 50,
+              ),
+              Text(
+                dayWeather.tempFeelsLike!.celsius!.round().toString() + '°',
+                style: TextStyle(fontSize: 25),
+              ),
+              Text(
+                'Feel',
+                style: TextStyle(fontSize: 16, color: Colors.grey),
+              ),
+            ],
+          ),
+        ),
+      ));
+    }
+
+    return weatherTiles;
   }
 }
