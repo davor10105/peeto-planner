@@ -269,10 +269,10 @@ class _WeatherViewState extends State<WeatherView> {
     if (weatherCode >= 700 && weatherCode < 800) {
       imagePath = 'lib/images/foggy.gif';
     }
-    if (weatherCode >= 700 && weatherCode < 800) {
+    if (weatherCode >= 700 && weatherCode <= 800) {
       imagePath = 'lib/images/sun.gif';
     }
-    if (weatherCode >= 800 && weatherCode < 803) {
+    if (weatherCode >= 801 && weatherCode < 803) {
       imagePath = 'lib/images/cloudy.gif';
     }
     if (weatherCode >= 803 && weatherCode < 900) {
