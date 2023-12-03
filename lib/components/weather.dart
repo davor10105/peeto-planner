@@ -119,107 +119,74 @@ class _WeatherViewState extends State<WeatherView> {
                 ),
               ],
             );*/
-            return Column(
-              children: [
-                Padding(
-                  padding: const EdgeInsets.only(
-                    top: 8.0,
-                    bottom: 16.0,
-                  ),
-                  child: Container(
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      color: Colors.white,
-                      borderRadius: BorderRadius.circular(8.0),
-                      boxShadow: [
-                        BoxShadow(
-                            color: Color.fromARGB(83, 0, 0, 0),
-                            blurRadius: 8,
-                            spreadRadius: 2),
-                      ],
-                    ),
-                    child: Padding(
-                      padding: const EdgeInsets.all(8.0),
-                      child: Column(
-                        children: [
-                          Text(sortedWeather.first.first.areaName.toString()),
-                          Text(
-                            sortedWeather.first.first.country.toString(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.blueGrey,
-                            ),
+            return Expanded(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 16.0),
+                child: ListView.builder(
+                    itemCount: sortedWeather.length,
+                    itemBuilder: (context, index) {
+                      Weather middleOfCurrentDay = sortedWeather[index]
+                          [(sortedWeather[index].length / 2).floor()];
+                      return Padding(
+                        padding: const EdgeInsets.only(
+                          left: 8.0,
+                          right: 8.0,
+                          bottom: 16.0,
+                        ),
+                        child: Container(
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(8.0),
+                            boxShadow: [
+                              BoxShadow(
+                                  color: Color.fromARGB(83, 0, 0, 0),
+                                  blurRadius: 8,
+                                  spreadRadius: 2),
+                            ],
                           ),
-                        ],
-                      ),
-                    ),
-                  ),
-                ),
-                Expanded(
-                  child: ListView.builder(
-                      itemCount: sortedWeather.length,
-                      itemBuilder: (context, index) {
-                        Weather middleOfCurrentDay = sortedWeather[index]
-                            [(sortedWeather[index].length / 2).floor()];
-                        return Padding(
-                          padding: const EdgeInsets.only(
-                            bottom: 16.0,
-                          ),
-                          child: Container(
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(8.0),
-                              boxShadow: [
-                                BoxShadow(
-                                    color: Color.fromARGB(83, 0, 0, 0),
-                                    blurRadius: 8,
-                                    spreadRadius: 2),
+                          child: ExpansionTile(
+                            leading: Image.asset(getWeatherImagePath(
+                                middleOfCurrentDay.weatherConditionCode!)),
+                            title: Text(
+                                weekdays[middleOfCurrentDay.date!.weekday - 1]),
+                            subtitle: Row(
+                              children: [
+                                Text(
+                                  middleOfCurrentDay.temperature!.celsius!
+                                          .round()
+                                          .toString() +
+                                      '°',
+                                  style: TextStyle(fontSize: 25),
+                                ),
+                                Text(
+                                  'Real',
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.grey),
+                                ),
+                                SizedBox(
+                                  width: 50,
+                                ),
+                                Text(
+                                  middleOfCurrentDay.tempFeelsLike!.celsius!
+                                          .round()
+                                          .toString() +
+                                      '°',
+                                  style: TextStyle(fontSize: 25),
+                                ),
+                                Text(
+                                  'Feel',
+                                  style: TextStyle(
+                                      fontSize: 16, color: Colors.grey),
+                                ),
                               ],
                             ),
-                            child: ExpansionTile(
-                              leading: Image.asset(getWeatherImagePath(
-                                  middleOfCurrentDay.weatherConditionCode!)),
-                              title: Text(weekdays[
-                                  middleOfCurrentDay.date!.weekday - 1]),
-                              subtitle: Row(
-                                children: [
-                                  Text(
-                                    middleOfCurrentDay.temperature!.celsius!
-                                            .round()
-                                            .toString() +
-                                        '°',
-                                    style: TextStyle(fontSize: 25),
-                                  ),
-                                  Text(
-                                    'Real',
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.grey),
-                                  ),
-                                  SizedBox(
-                                    width: 50,
-                                  ),
-                                  Text(
-                                    middleOfCurrentDay.tempFeelsLike!.celsius!
-                                            .round()
-                                            .toString() +
-                                        '°',
-                                    style: TextStyle(fontSize: 25),
-                                  ),
-                                  Text(
-                                    'Feel',
-                                    style: TextStyle(
-                                        fontSize: 16, color: Colors.grey),
-                                  ),
-                                ],
-                              ),
-                              children:
-                                  getSingleWeatherTiles(sortedWeather[index]),
-                            ),
+                            children:
+                                getSingleWeatherTiles(sortedWeather[index]),
                           ),
-                        );
-                      }),
-                ),
-              ],
+                        ),
+                      );
+                    }),
+              ),
             );
           } else if (snapshot.hasError) {
             return const Center(

@@ -66,10 +66,10 @@ List<Widget> getTaskContainers(
                 backgroundColor:
                     task.isDone ? Colors.blueGrey : Colors.greenAccent,
                 foregroundColor: Colors.white,
-                icon: Icons.check,
+                icon: task.isDone ? Icons.close : Icons.check,
                 label: task.isDone ? 'Un-Complete' : 'Complete',
                 borderRadius: const BorderRadius.only(
-                  topRight: Radius.circular(8.0),
+                  bottomLeft: Radius.circular(8.0),
                   topLeft: Radius.circular(8.0),
                 ),
               ),
@@ -84,7 +84,7 @@ List<Widget> getTaskContainers(
                 label: 'Delete',
                 borderRadius: const BorderRadius.only(
                   bottomRight: Radius.circular(8.0),
-                  bottomLeft: Radius.circular(8.0),
+                  topRight: Radius.circular(8.0),
                 ),
               ),
             ],
@@ -103,43 +103,15 @@ List<Widget> getTaskContainers(
             clipBehavior: Clip.hardEdge,
             height: 150,
             decoration: BoxDecoration(
-                color: Color.fromARGB(255, 223, 239, 252),
-                border: Border.all(
-                  color: Color.fromARGB(255, 190, 225, 253),
-                ),
-                borderRadius: BorderRadius.all(Radius.circular(8.0))),
-            child: Center(
-                child: Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Expanded(
-                        child: Center(
-                          child: Text(
-                            task.title,
-                            style: TextStyle(
-                              color: Colors.blueAccent,
-                            ),
-                          ),
-                        ),
-                      ),
-                      task.isDone ? Icon(Icons.check) : Container(),
-                    ],
-                  ),
-                  Text(
-                    task.textDescription,
-                    style: TextStyle(
-                      color: const Color.fromARGB(255, 163, 204, 238),
-                      fontSize: 16,
-                    ),
-                  ),
+                color: Colors.white,
+                boxShadow: [
+                  BoxShadow(
+                      color: Color.fromARGB(30, 0, 0, 0),
+                      blurRadius: 8,
+                      spreadRadius: 2),
                 ],
-              ),
-            )),
+                borderRadius: BorderRadius.all(Radius.circular(8.0))),
+            child: TaskPreview(task: task),
           ),
         ),
         /*Container(
@@ -170,6 +142,122 @@ List<Widget> getTaskContainers(
     ));
   }
   return taskContainers;
+}
+
+class TaskPreview extends StatelessWidget {
+  const TaskPreview({
+    super.key,
+    required this.task,
+  });
+
+  final PlannerTask task;
+
+  @override
+  Widget build(BuildContext context) {
+    return Center(
+        child: Padding(
+      padding: const EdgeInsets.all(16.0),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              children: [
+                Text(
+                  task.title,
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontWeight: FontWeight.bold,
+                    fontSize: 18,
+                  ),
+                ),
+                Text(
+                  task.textDescription,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 20,
+                  ),
+                ),
+              ],
+            ),
+          ),
+          VerticalDivider(),
+          Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Row(
+                children: [
+                  task.isDone
+                      ? Image.asset(
+                          'lib/images/verified.gif',
+                          height: 30,
+                        )
+                      : Image.asset(
+                          'lib/images/letter-x.gif',
+                          height: 30,
+                        ),
+                  SizedBox(
+                    width: 5,
+                  ),
+                  task.isDone
+                      ? const Text(
+                          'Done',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.greenAccent,
+                          ),
+                        )
+                      : const Text(
+                          'Not Done',
+                          style: TextStyle(
+                            fontSize: 12,
+                            color: Colors.redAccent,
+                          ),
+                        ),
+                ],
+              ),
+              Column(
+                children: [
+                  Text(
+                    '${task.startTime.day.toString().padLeft(2, "0")}.${task.startTime.month.toString().padLeft(2, "0")}.${task.startTime.year} ${task.startTime.hour.toString().padLeft(2, "0")}:${task.startTime.minute.toString().padLeft(2, "0")}',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 14,
+                    ),
+                  ),
+                  const Text(
+                    'Start',
+                    style: TextStyle(
+                      color: Colors.grey,
+                      fontSize: 8,
+                    ),
+                  ),
+                  SizedBox(height: 5),
+                  task.endTime == null
+                      ? Container()
+                      : Text(
+                          '${task.endTime!.day.toString().padLeft(2, "0")}.${task.endTime!.month.toString().padLeft(2, "0")}.${task.endTime!.year} ${task.endTime!.hour.toString().padLeft(2, "0")}:${task.endTime!.minute.toString().padLeft(2, "0")}',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 14,
+                          ),
+                        ),
+                  task.endTime == null
+                      ? Container()
+                      : const Text(
+                          'End',
+                          style: TextStyle(
+                            color: Colors.grey,
+                            fontSize: 8,
+                          ),
+                        ),
+                ],
+              ),
+            ],
+          ),
+        ],
+      ),
+    ));
+  }
 }
 
 class ViewTaskTypePage extends StatefulWidget {
